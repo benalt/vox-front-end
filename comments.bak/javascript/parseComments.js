@@ -1,4 +1,4 @@
-var jsdom = require('./node-modules/jsdom')
+var jsdom = require('./node-module/jsdom')
   , fs    = require('fs');
 
 fs.readFile('../resources/comments-html.txt', function (err, data) {
@@ -15,18 +15,14 @@ fs.readFile('../resources/comments-html.txt', function (err, data) {
   }, function (err, window) {
     console.log("jsdom initialized correctly");
     var $ = window.jQuery
-      , threadsArray  = []
       , commentsArray = []
       , commentsHash  = {}
-      , commentsCount = 0
-      , comments = {"commentsArray" : commentsArray, "threadsArray" : threadsArray, "commentsHash" : commentsHash};
+      , comments = {"commentsArray" : commentsArray, "commentsHash" : commentsHash};
       
     $('body').append("<div class='commentsContainer'>" + commentsContent +"</div>");
     $(".citem").each(function(idx, elem){
       var $this   = $(elem)
-        , $cNode  = $this.find("> .comment")
-        , parentId =  $this.parent().attr("id").substr(13)
-        , isThread = (parentId == "comments_list");
+        , $cNode  = $this.find("> .comment");
       
       $body = $cNode.find(".cbody").clone();
       $body.find(".sig").remove();
@@ -36,7 +32,7 @@ fs.readFile('../resources/comments-html.txt', function (err, data) {
           index       : idx, 
           title       : $.trim($cNode.find(".comment_title").text()),
           body        : $.trim($body.html()),
-          replyTo     : (parentId == "comments_list") ? null : {"id" : parentId },
+          replyTo     : {"id" : ( $this.parent().attr("id").substr(13) == "comments_list") ? "" :  $this.parent().attr("id").substr(13)},
           replies     : function(){ 
             var repliesArray = [];
               $this.children().filter(".citem").each(function(idx, citem){
@@ -53,17 +49,16 @@ fs.readFile('../resources/comments-html.txt', function (err, data) {
             signature : $.trim($cNode.find(".sig").html())
           }
         };
-      if (isThread) {
-        threadsArray[threadsArray.length] = comment.id;
-      } 
+
       commentsArray[commentsArray.length] = comment.id;
       commentsHash["comment_" + comment.id] = comment;
+
+      //console.log("added" + comment.id + " at " (commentsArray.length - 1))
     });
-    commentsHash.commentsCount = commentsCount;
-    console.log("processd " + commentsCount + " comments");
+    console.log("processd " + commentsArray.length + "comments");
     fs.writeFile('../resources/comments.json', JSON.stringify(comments) , function (err) {
       if (err) throw err;
-      console.log("wrote ../resources/comments.json with " + commentsCount + " records");
+      console.log("wrote ../resources/comments.json with " + commentsArray.length + " records");
       process.exit(0);
     });
   });

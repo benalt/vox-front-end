@@ -8,9 +8,7 @@ Mu.templateRoot = '../templates';
 
 var commentsLoaded  = false
   , commentsHash    = null
-  , threadsArray    = []
-  , commentsArray   = []
-  , updatesArray    = [];
+  , commentsArray   = [];
 
 var server;
 
@@ -21,12 +19,12 @@ var randomTypeFlag = 0;
 function renderBasePage(callback, startIdx) {
   var startIdx = startIdx || 0;
   jsdom.env({
-    html: '<html><head></head><body><div id="vox-doc"></div></body></html>',
+    html: '<html><head></head><body><div id="vox-doc"><h2 class="vox-subtitle">Comments</h2><div id="vox-cmnt-container"><span id="vox-cmnt-count" data-comments-total="' + commentsArray.length + '">' + commentsArray.length + '</span></div></div></body></html>',
     scripts: [
       'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js',
       'javascript/plugins/ICanHaz.min.js',
+      'javascript/plugins/jquery.lazyload.min.js',
       'javascript/plugins/jquery.scrollto.min.js',
-      'javascript/plugins/jquery.viewport.min.js',
       'javascript/commentsClient.js',
       'javascript/voxPage.js'
     ]
@@ -34,11 +32,25 @@ function renderBasePage(callback, startIdx) {
     //console.log("jsdom loaded");
     var $ = window.jQuery
       , commentsContainer = $('#vox-cmnt-container')
+      , loadedCount = initialLoadNumber
       , headAddedFlag = false
-      , bodyAddedFlag = false;
+      , footAddedFlag = false
+      , outstandingProcesses = initialLoadNumber
     
     function attemptContinue(){
-      if (headAddedFlag && bodyAddedFlag ) {
+      //console.log("attemptContinue ran")
+      if (outstandingProcesses<1 && headAddedFlag) {
+        // rejigger the dom
+        commentsContainer.find(".vox-cmnt-comment").each(function(idx,comment) {
+          var $comment      = $(comment)
+            , commentFor    = $comment.attr("data-reply-to")
+            , parentComment = commentsContainer.find("#comment_" + commentFor);
+            
+          //console.log(commentFor + ":" + parentComment.length );
+          if (parentComment.length>0) {
+            parentComment.append($comment);
+          }
+        });
         callback($('html').html());
       }
     };
@@ -54,18 +66,56 @@ function renderBasePage(callback, startIdx) {
         attemptContinue();
       });
     });
-    Mu.render('body.html', {"commentsCount":commentsArray.length}, {}, function (err, output) {
+    
+    
+    $.each(getFromIdx(0,initialLoadNumber).comments, function(idx,ctx){
+      Mu.render('comment.html', ctx, {}, function (err, output) {
+        if (err) {
+          throw err;
+        }
+        var buffer = '';
+        output.addListener('data', function (c) {buffer += c; }).addListener('end', function () { 
+          outstandingProcesses -= 1;
+          commentsContainer.append(buffer);
+          attemptContinue();
+        });
+      });
+    });
+    
+    Mu.render('foot.html', {}, {}, function (err, output) {
       if (err) {
         throw err;
       }
       var buffer = '';
       output.addListener('data', function (c) {buffer += c; }).addListener('end', function () { 
-        bodyAddedFlag = true;
-        $("#vox-doc").append(buffer);
+        footAddedFlag = true;
+        //console.log(buffer);
+        commentsContainer.append(buffer);
         attemptContinue();
       });
     });
+        
   });
+}
+
+function getFromIdx(from, to){
+  var idx   = from || 0
+    , to      = to || commentsArray.length-1
+    , retArr  = []
+    , retObj  = {
+        floorReached  : to >=  commentsArray.length,
+        totalComments : commentsArray.length,
+        comments      : retArr
+      };
+    
+  if (commentsArray.length<1){ return null; }
+  
+  while(commentsArray[idx] && idx <= to) {
+    retArr[retArr.length] = commentsHash["comment_" + commentsArray[idx]]; 
+    idx += 1;
+  }
+  retObj.lastIndex = idx;
+  return retObj;
 }
 
 function getQueryVariable(queryUrl) { 
@@ -79,6 +129,16 @@ function getQueryVariable(queryUrl) {
   return retObj;
 }
 
+function loadStaticFile (path, res, callback){
+  fs.readFile('..' + path, function (err, data) {
+    if (err) {
+      do404(res);
+      callback(res,null);
+    }
+    callback(res,data);
+  });
+}
+
 function do404 (res) {
   res.writeHead(404, {'Content-Type': res.typeToken});
   res.end("File not found");
@@ -89,56 +149,15 @@ function do200 (res,data) {
   res.end(data);
 }
 
-function loadStaticFile (path, res){
-  fs.readFile('..' + path, function (err, data) {
-    if (err) {
-      do404(res);
-    }
-    do200(res,data);
-  });
-}
-
-function loadThreads(res){
-  do200(res,JSON.stringify( {"updateIdx" : updatesArray.length-1 , "threads" : threadsArray} ));
-}
-
-function populateReplies(comment){
-  if (!comment) { return; }
-  var rpls = comment.replies;
-  if (rpls.length > 1) {
-    for (var i=rpls.length; i>-1; i--) {
-      var cmt = commentsHash["comment_" + rpls[i]]
-      if (cmt) {
-        rpls[i] = cmt;
-        populateReplies(cmt);
-      }
-    }
-  }
-  return comment;
-}
-
-function loadThread(threadId, res) {
-  console.log("request for " + threadId)
-  do200(res,JSON.stringify( populateReplies(commentsHash["comment_" + threadId])));
-}
-
-function loadUpdates(sinceIndex, res) {
-  var updates = updatesArray.slice(sinceIndex);
-  for (var i=updates.length-1; i>-1; i--) {
-    updates[i] = commentsHash["comment_" + updates[i]];
-  }
-  do200(res,JSON.stringify({"updateIdx" : updatesArray.length, "commentsCount" : commentsArray.length, "updates":updates}));
-}
-
 function handleRequest(req, res) {
-  var url = req.url
-    , vars = getQueryVariable(url);
-
+  var url = req.url;
+  //console.log("request at " + url);
   if (commentsLoaded == false) {
     console.log("comments not yet loaded, setting a timeout of 1 sec");
-    var to = setTimeout(  function(){ clearTimeout(to); handleRequest(req, res) }, 750);
+    var to = setTimeout(  function(){ clearTimeout(to); handleRequest(req, res) }, 1000);
     return;
   }
+  
   res.typeToken = 'text/plain';
   
   if (url == "/" || url == "index.html") {
@@ -147,24 +166,14 @@ function handleRequest(req, res) {
     return;
   }
   
-  
-  if (url.indexOf("/data/") > -1) {
-    if (url.indexOf("threads") > -1) {
-      loadThreads(res)
-      return;
-    }
-
-    if (url.indexOf("thread") > -1) {
-      loadThread(vars.id, res)
-      return;
-    }
-
-    if (url.indexOf("updates") > -1) {
-      loadUpdates(vars.idx || 0 ,res)
-      return;
-    }
+  if (url.indexOf("/data") > -1) {
+    var vars = getQueryVariable(url)
+      , from = vars.from || 0
+      , to = vars.to || null;
+    do200(res, JSON.stringify( (to) ? getFromIdx(from, to) : getFromIdx(from) ));
+    return;
   }
-  loadStaticFile(url, res);
+  loadStaticFile(url, res, function(res,data) { if (data) { do200(res,data) } });
 }
 
 function addRandomComment() {
@@ -172,30 +181,29 @@ function addRandomComment() {
     , caLen = commentsArray.length
     , rand  = Math.floor(caLen * Math.random())
     , rand2 = Math.floor(caLen * Math.random())
-    , nextId = new Date().getTime()
+    , lastItem = commentsHash["comment_" + commentsArray[caLen - 1]]
+    , nextId = parseInt(lastItem.id) + 1
     , baseComment = commentsHash["comment_" + commentsArray[rand]]
     , commentedUpon = commentsHash["comment_" + commentsArray[rand2]]
     , newComment = { 
         id          : nextId, 
-        index       : caLen,
+        index       : commentsArray.length,
         title       : baseComment.title,
         body        : baseComment.body,
         commenter   : baseComment.commenter,
-        recommended : (rand2 < (.5 * caLen)),
+        recommended : (rand2 < (.10 * caLen)),
         replies     : []
     };
-  
+    
   commentsArray.push(newComment.id);
-  updatesArray.push(newComment.id);
   commentsHash["comment_" + newComment.id] = newComment;
-  
-  if (rand < .90 * caLen) {
+  if (randomTypeFlag < 1) {
      commentedUpon.replies.push(nextId);
      newComment.replyTo = {"id" : commentedUpon.id};
+     randomTypeFlag += 1;
   } else {
-    threadsArray.push(newComment.id);
-  } 
-  console.log("added a random comment " + caLen + " " + nextId);
+    randomTypeFlag = 0;
+  }  
 }
 
 fs.readFile('../resources/comments.json', function (err, data) {
@@ -203,7 +211,6 @@ fs.readFile('../resources/comments.json', function (err, data) {
   //console.log('../resources/comments.json read' );
   var commentsData = JSON.parse(data);
   commentsHash = commentsData.commentsHash;
-  threadsArray = commentsData.threadsArray;
   commentsArray = commentsData.commentsArray;
   commentsLoaded = true;
   addRandomComment();

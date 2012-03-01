@@ -1,12 +1,12 @@
-<div id="comment_{{id}}" data-comment-id="{{id}}" data-comment-index="{{index}}" {{#replyTo}} data-reply-to="{{id}}" {{/replyTo}} class="vox-cmnt-comment">	
-  <div class="vox-cmnt-item{{#recommended}} vox-cmnt-recommended{{/recommended}}">
+<div id="comment_{{id}}" data-comment-index="{{index}}" {{#replyTo}} data-reply-to="{{id}}" {{/replyTo}} class="vox-cmnt-comment{{#recommended}} vox-cmnt-recommended{{/recommended}}">	
+  <div class="vox-cmnt-item">
   	{{#commenter}}
   	<a class="vox-cmnt-pic" href="{{ url }}">
   	  <img class="vox-lazyImage" src="{{avatarUrl}}" width="32" height="32">
   	</a>
   	{{/commenter}}
   	<h5 class="vox-cmnt-title">
-  		{{ title }}
+  		({{index}}) {{ title }}
     </h5>
     <div class="vox-cmnt-body">
   		{{{ body }}}

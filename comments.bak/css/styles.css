@@ -1,0 +1,94 @@
+#vox-doc {
+  width: 615px;
+  padding: 20px;
+}
+
+a:link, a:visited {
+  color: #C31F15;
+  text-decoration: none;
+} 
+
+a:hover, a:active {
+  text-decoration: underline;
+}
+
+
+h2.vox-subtitle {
+  background-color: #C31F15;
+  color: white;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0 3px;
+}
+  
+#vox-cmnt-container {
+  padding-top: 12px;
+}
+
+.vox-cmnt-comment {
+  clear: left;
+}
+  
+.vox-cmnt-item {
+  border-top: 1px solid #ccc;
+  padding-bottom: 6px;
+  min-height: 50px;
+}
+
+.vox-cmnt-comment .vox-cmnt-comment {
+  padding-left: 26px;
+}
+  
+.vox-cmnt-pic {
+  background-color: #e7e7e7;
+  float: right;
+  margin: 8px 6px 6px 6px;
+}
+  
+.vox-cmnt-title {
+  font-size: 12px;
+  line-height: 14px;
+  margin: 6px 0 0 0;
+}
+  
+.vox-cmnt-body {
+  font-size: 12px;
+  line-height: 17px;
+}
+  
+.vox-cmnt-sig {
+  color: #666;
+  font-size: 11px;
+  line-height: 12px;
+  font-style: italic;
+}
+
+.vox-cmnt-body p,
+.vox-cmnt-sig p {
+  margin: 6px 0;
+}
+
+.vox-cmnt-meta {
+  color: #666;
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.vox-cmnt-up,
+.vox-cmnt-reply,
+.vox-cmnt-recommend,
+.vox-cmnt-flag {
+  color: #C31F15;
+}
+
+.vox-cmnt-up:hover,
+.vox-cmnt-reply:hover,
+.vox-cmnt-recommend:hover,
+.vox-cmnt-flag:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.vox-cmnt-time {
+  color: #888;
+}

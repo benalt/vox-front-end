@@ -1,6 +1,7 @@
 #vox-doc {
-  width: 615px;
-  padding: 20px;
+  width: 675px;
+  padding: 20px 20px 20px 20px;
+  vertical-align: left;
 }
 
 a:link, a:visited {
@@ -20,23 +21,36 @@ h2.vox-subtitle {
   line-height: 18px;
   padding: 0 3px;
 }
-  
+
+.vox-cmnt-main-controls {
+  padding: 4px 0 7px 0;
+}
 #vox-cmnt-container {
-  padding-top: 12px;
 }
 
 .vox-cmnt-comment {
   clear: left;
 }
+
+.vox-cmnt-raw {
+  min-height: 50px;
+  background-color: rgba(200, 200, 200,.1);
+}
   
 .vox-cmnt-item {
   border-top: 1px solid #ccc;
+  padding: 0 5px;
   padding-bottom: 6px;
   min-height: 50px;
 }
+  
+.vox-cmnt-item.vox-cmnt-recommended  {
+  border-color    : rgba(131, 214, 110,1);
+  background-color: rgba(131, 214, 110,.25);
+}
 
 .vox-cmnt-comment .vox-cmnt-comment {
-  padding-left: 26px;
+  padding-left: 15px;
 }
   
 .vox-cmnt-pic {
@@ -92,3 +106,92 @@ h2.vox-subtitle {
 .vox-cmnt-time {
   color: #888;
 }
+
+#vox-cmnt-alertBar {
+  position: absolute;
+  left    : 705px;
+  width   : 10px;
+}
+
+.vox-cmnt-alertRail {
+  position: absolute;
+  top     : 10px;
+  bottom  : 10px;
+  width   : 2px;
+  border  : 1px solid #e7e7e7;
+  -webkit-border-radius : 2px;
+  -moz-border-radius    : 2px;
+  border-radius         : 2px;
+}
+
+.vox-cmnt-alert {
+  position: absolute;
+  left    : 0px;
+}
+  
+.vox-cmnt-alert-indicator {
+  position: absolute;
+  top     : 0;
+  left    : -1px;
+  height  : 6px;
+  width   : 6px;
+  -webkit-border-radius : 3px;
+  -moz-border-radius    : 3px;
+  border-radius         : 3px;
+}
+
+.vox-cmnt-alert-label {
+  position: absolute;
+  top     : -5px;
+  left    : 10px;
+  min-height  : 17px;
+  font-size   : 11px;
+  line-height : 17px;
+  padding     : 0 3px;
+  -webkit-border-radius : 3px;
+  -moz-border-radius    : 3px;
+  border-radius         : 3px;
+  white-space: nowrap;
+}
+
+.vox-cmnt-alert-reply .vox-cmnt-alert-indicator,
+.vox-cmnt-alert-reply .vox-cmnt-alert-label {
+  border-color    : rgba(195,31,21,1);
+  background-color: rgba(195,31,21,.25);
+  color           : rgba(195,31,21,1);
+}
+
+.vox-cmnt-alert-rec .vox-cmnt-alert-indicator,
+.vox-cmnt-alert-rec .vox-cmnt-alert-label {
+  border-color    : rgba(131, 214, 110,1);
+  background-color: rgba(131, 214, 110,.25);
+  color           : rgba(131, 214, 110,1);
+}
+
+.vox-cmnt-alert-new .vox-cmnt-alert-indicator,
+.vox-cmnt-alert-new .vox-cmnt-alert-label {
+  border-color    : rgba(200, 200, 200,1);
+  background-color: rgba(200, 200, 200,.25);
+  color           : rgba(200, 200, 200,1);
+}
+
+.demo-ctl-main {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  display: none;
+}
+
+.demo-ctl-btn {
+  display: block;
+  margin: 5px 15px;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 11px;
+  border: 1px solid;
+  border-color    : rgba(195,31,21,1);
+  background-color: rgba(195,31,21,.25);
+  color           : rgba(195,31,21,1);
+  
+}
+

@@ -1,0 +1,17 @@
+{ id : "", 
+	title : "",
+	body : "",
+	replyTo : {
+	  id : <STRING ID>
+	},
+	replies : [<STRING ID>,...],
+	recommended : Boolean,
+	commenter : {
+	  isUser    : Boolean
+		name 			: "",
+		url 			: "",
+		avatarURL : "",
+		signature : ""
+	},
+	
+}
