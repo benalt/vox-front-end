@@ -1,0 +1,13 @@
+Key Findings:
+
+*	Lazy loading images, works well for images that are put in at compile time, 
+
+!!Important - Don't do this for images loaded dynamically, pages that have an extremely large number of images should have the lazy loaded functionality applied as they get closer to the viewport - the large number of bindings chews up memory. 
+  
+* Mustache is is really a viable option, especially if we take a more mvvm focused approach. 
+
+* Using a standard infinite scroll works really well in cases where the user will probably not want to skip down to the bottom quickly (this means articles, results lists, etc.) In contexts like comments, where a user will likely want to get to the most recent one quickly, it's trickier. We need to put placeholder nodes in the dom for cases like this.
+
+* Notifications are tricky for lazy loaded comments - we need some thought put into this to generate rules - the prototype displays notifications only for items that are listed in the DOM, which is awkward - might be wise to flag recommended messages, things like that.
+
+
